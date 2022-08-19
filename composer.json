@@ -1,5 +1,5 @@
 {
-    "name": "lorenzo/redis",
+    "name": "zunnu/redis",
     "description": "CakePHP support for the Redis key-value database",
     "type": "cakephp-plugin",
     "require": {
