@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 namespace Cake\Redis;
 
@@ -7,8 +6,6 @@ use Cake\Redis\Driver\PHPRedisDriver;
 use Cake\Redis\Driver\PredisDriver;
 use Cake\Datasource\ConnectionInterface;
 use Cake\Core\App;
-use \Cake\Datasource\Exception\MissingDatasourceException;
-use Cake\Database\Log\QueryLogger;
 
 class RedisConnection implements ConnectionInterface, DriverInterface
 {
@@ -39,14 +36,6 @@ class RedisConnection implements ConnectionInterface, DriverInterface
      * @var mixed
      */
     protected $_logger;
-
-    /**
-     * The cacher object
-     *
-     * @var  \Psr\SimpleCache\CacheInterface
-     */
-    protected $_cacher;
-
 
     /**
      * Connects to Redis using the specified driver
@@ -80,6 +69,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
         }
 
         if (is_string($driver)) {
+
             if ($driver === 'phpredis') {
                 $driver = PHPRedisDriver::class;
             }
@@ -103,7 +93,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
     /**
      * {@inheritDoc}
      */
-    public function config(): array
+    public function config()
     {
         return $this->_config;
     }
@@ -111,7 +101,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
     /**
      * {@inheritDoc}
      */
-    public function configName(): string
+    public function configName()
     {
         if (empty($this->_config['name'])) {
             return '';
@@ -133,39 +123,36 @@ class RedisConnection implements ConnectionInterface, DriverInterface
     /**
      * {@inheritDoc}
      */
-    public function setLogger(\Psr\Log\LoggerInterface $logger): void
+    public function logger($instance = null)
     {
-        if ($logger === null) {
+        if ($instance === null) {
             if ($this->_logger === null) {
-                $this->_logger = new QueryLogger(['connection' => $this->configName()]);
+                $this->_logger = new RedisLogger();
             }
-        }
-        $this->_logger = $logger;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getLogger(): \Psr\Log\LoggerInterface
-    {
-        if ($this->_logger !== null) {
             return $this->_logger;
         }
-
-        if (!class_exists(QueryLogger::class)) {
-            throw new \RuntimeException(
-                'For logging you must either set a logger using Connection::setLogger()' .
-                ' or require the cakephp/log package in your composer config.'
-            );
-        }
-
-        return $this->_logger = new QueryLogger(['connection' => $this->configName()]);
+        $this->_logger = $instance;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function isQueryLoggingEnabled(): bool
+    public function getLogger($instance = null)
+    {
+        if ($instance === null) {
+            if ($this->_logger === null) {
+                $this->_logger = new RedisLogger();
+            }
+            return $this->_logger;
+        }
+        $this->_logger = $instance;
+        return $this->_logger;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function isQueryLoggingEnabled()
     {
         return $this->_logQueries;
     }
@@ -173,27 +160,10 @@ class RedisConnection implements ConnectionInterface, DriverInterface
     /**
      * {@inheritDoc}
      */
-    public function enableQueryLogging(bool $enable = true)
+    public function enableQueryLogging()
     {
-        $this->_logQueries = $enable;
-        return $enable;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function setCacher(\Psr\SimpleCache\CacheInterface $cacher)
-    {
-        $this->_cacher = $cacher;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getCacher(): \Psr\SimpleCache\CacheInterface
-    {
-        return $this->_cacher;
+        $this->_logQueries = true;
+        return true;
     }
 
     /**
@@ -225,7 +195,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
      * Does the actual command excetution in the Redis driver
      *
      * @param string $method the command to execute
-     * @param array $parameters the parameters to pass to the driver command
+     * @param arrat $parameters the parameters to pass to the driver command
      * @return mixed
      */
     public function __call($method, $parameters)
@@ -240,7 +210,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
                 $result = $callable(...$parameters);
 
                 $ellapsed = microtime(true) - $start;
-                $command->took = (int)$ellapsed/1000;
+                $command->took = $ellapsed;
                 $command->numRows = 1;
 
                 if ($result === false) {
@@ -251,7 +221,7 @@ class RedisConnection implements ConnectionInterface, DriverInterface
                     $command->numRows = count($result);
                 }
 
-                $this->getLogger()->debug((string)$command, ['query' => $command]);
+                $this->logger()->log($command);
 
                 return $result;
             };

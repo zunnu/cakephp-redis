@@ -11,7 +11,7 @@ for working with large lists, hashmaps and even pub-sub systems.
 This library assumes that you either have installed `phpredis` or `predis`. We recommend installing `phpredis`
 
 * [PhpRedis](https://github.com/phpredis/phpredis) (recommended)
-* [Predis](https://github.com/nrk/predis)
+* [Predis](https://github.com/phpredis/phpredis)
 
 ### Configuring it in in your app.php file in
 
@@ -44,7 +44,7 @@ use Cake\Datasource\ConnectionManager;
 
 ConnectionManager::config('redis', [
     'className' => 'Cake\Redis\RedisConnection',
-    'driver' => 'Cake\Redis\Driver\PHPRedisDriver',
+    'driver' => 'Cake\Redis\Drier\PHPRedisDriver',
     'log' => false, // Log executed commands
     'host' => '127.0.0.1',
     'port' => 6379,
@@ -67,7 +67,7 @@ $redis->set('cakephp', 'awesome');
 echo $redis->get('cakephp'); // Returns 'awesome'
 ```
 
-Make sure you take a look at all the commands you can run in the [PHPRedis Readme](https://github.com/phpredis/phpredis/blob/develop/README.markdown).
+Make sure you take a look at all the commands you can run in the [PHPRedis Reame](https://github.com/phpredis/phpredis/blob/develop/README.markdown).
 
 ## Executing a list of commands in a transaction
 
