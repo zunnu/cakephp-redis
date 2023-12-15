@@ -19,7 +19,7 @@ class PHPRedisDriver extends Redis implements DriverInterface
         $config += [
             'host' => '127.0.0.1',
             'port' => null,
-            'timeout' => null,
+            'timeout' => 300,
             'reconnectionDelay' => null,
             'persistentId' => null,
             'database' => 0,
